@@ -25,6 +25,10 @@ http {
     server $API_URL;
   }
 
+  upstream ui {
+    server $UI_URL;
+  }
+
   server {
     listen $PORT;
 
@@ -34,8 +38,18 @@ http {
       proxy_set_header X-FORWARDED-HOST $host;
       proxy_set_header X-REAL-IP $remote_addr;
       proxy_set_header Host $API_HOST;
+      proxy_redirect off;
 
       rewrite /api(.*) $1 break;
+    }
+
+    # Nginx will reject anything not matching /
+    location / {
+      proxy_pass $PROTOCOL://ui;
+      proxy_set_header X-FORWARDED-HOST $host;
+      proxy_set_header X-REAL-IP $remote_addr;
+      proxy_set_header Host $UI_HOST;
+      proxy_redirect off;
     }
   }
 }
